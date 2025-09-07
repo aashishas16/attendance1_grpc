@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package attendance;
+
+option go_package = "attendance1/proto;proto";
+
+// --- Request Messages ---
+message CheckInRequest {
+  string user_id = 1;
+  string username = 2;
+  string name =3;
+}
+
+message CheckOutRequest {
+  string record_id = 1;
+}
+
+message GetAttendanceRequest {
+  string user_id = 1;
+}
+
+message GetAllAttendanceRequest {}
+
+// --- Response Messages ---
+message AttendanceRecordResponse {
+  string id = 1;
+  string user_id = 2;
+  string username = 3;
+  string checkin_time = 4;
+  string checkout_time = 5;
+  string status_message = 6;
+}
+
+message GetAllAttendanceResponse {
+  repeated AttendanceRecordResponse records = 1;
+}
+
+// --- Service Definition ---
+service AttendanceService {
+  rpc CheckIn(CheckInRequest) returns (AttendanceRecordResponse);
+  rpc CheckOut(CheckOutRequest) returns (AttendanceRecordResponse);
+  rpc GetAttendance(GetAttendanceRequest) returns (AttendanceRecordResponse);
+  rpc GetAllAttendance(GetAllAttendanceRequest) returns (GetAllAttendanceResponse);
+}

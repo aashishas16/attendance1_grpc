@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: attendance1-mongo
+  namespace: attendance
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: attendance1-mongo
+  template:
+    metadata:
+      labels:
+        app: attendance1-mongo
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:6.0
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_DATABASE
+              value: attendance_db
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: attendance1-mongo-svc
+  namespace: attendance
+spec:
+  selector:
+    app: attendance1-mongo
+  ports:
+    - port: 27017
+      targetPort: 27017
+  clusterIP: None
+
+
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: attendance1-mongo
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: attendance1-mongo
+#   template:
+#     metadata:
+#       labels:
+#         app: attendance1-mongo
+#     spec:
+#       containers:
+#         - name: mongo
+#           image: mongo:6.0
+#           ports:
+#             - containerPort: 27017
+#           env:
+#             - name: MONGO_INITDB_DATABASE
+#               value: "attendance_db"
+#           resources:
+#             requests:
+#               cpu: "100m"
+#               memory: "256Mi"
+#             limits:
+#               cpu: "500m"
+#               memory: "512Mi"
+#           volumeMounts:
+#             - name: mongo-storage
+#               mountPath: /data/db
+#       volumes:
+#         - name: mongo-storage
+#           emptyDir: {}
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: attendance1-mongo-svc
+# spec:
+#   selector:
+#     app: attendance1-mongo
+#   ports:
+#     - port: 27017
+#       targetPort: 27017
+#   clusterIP: None

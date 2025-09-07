@@ -1,0 +1,27 @@
+services:
+  mongo:
+    image: mongo:6.0
+    container_name: attendance1_mongo_db   # 👈 unique name
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: attendance_db
+
+  app:
+    build: .
+    image: aashishsingune/attendance1:latest
+    container_name: attendance1_app
+    restart: always
+    ports:
+      - "50051:50051"
+      - "8080:8080"
+    depends_on:
+      - mongo
+    environment:
+      MONGO_URI: mongodb://mongo:27017/attendance_db
+
+volumes:
+  mongo-data:

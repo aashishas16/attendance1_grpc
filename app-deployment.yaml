@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: attendance1-app
+  namespace: attendance
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: attendance1-app
+  template:
+    metadata:
+      labels:
+        app: attendance1-app
+    spec:
+      containers:
+        - name: attendance1-app
+          image: aashishsingune/attendance1:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: MONGO_URI
+              value: "mongodb://attendance1-mongo-svc:27017/attendance_db"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: attendance1-app-svc
+  namespace: attendance
+spec:
+  type: NodePort
+  selector:
+    app: attendance1-app
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30081
+
+
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: attendance1-app
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: attendance1-app
+#   template:
+#     metadata:
+#       labels:
+#         app: attendance1-app
+#     spec:
+#       containers:
+#         - name: attendance1-app
+#           image: aashishsingune/attendance1:latest
+#           ports:
+#             - containerPort: 8080
+#           env:
+#             - name: MONGO_URI
+#               value: "mongodb://attendance1-mongo-svc:27017/attendance_db"
+#           resources:
+#             requests:
+#               cpu: "100m"
+#               memory: "256Mi"
+#             limits:
+#               cpu: "500m"
+#               memory: "512Mi"
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: attendance1-app-svc
+# spec:
+#   type: NodePort
+#   selector:
+#     app: attendance1-app
+#   ports:
+#     - port: 8080
+#       targetPort: 8080
+#       nodePort: 30080
