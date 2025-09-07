@@ -1,11 +1,9 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -39,11 +37,13 @@ func formatIST(t time.Time) string {
 // --------- Handlers ---------
 
 func (s *server) checkIn(w http.ResponseWriter, r *http.Request) {
+	log.Println("CheckIn request received")
 	var body struct {
 		UserID   string `json:"user_id"`
 		Username string `json:"username"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.UserID == "" || body.Username == "" {
+		log.Println("CheckIn: invalid input")
 		http.Error(w, "user_id and username required", http.StatusBadRequest)
 		return
 	}
@@ -56,10 +56,12 @@ func (s *server) checkIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err := s.collection.InsertOne(r.Context(), rec); err != nil {
+		log.Println("CheckIn: Mongo insert failed:", err)
 		http.Error(w, "failed to insert record", http.StatusInternalServerError)
 		return
 	}
 
+	log.Println("CheckIn: record inserted with ID:", rec.ID.Hex())
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Checked in successfully",
 		"id":      rec.ID.Hex(),
@@ -67,8 +69,10 @@ func (s *server) checkIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) checkOut(w http.ResponseWriter, r *http.Request) {
+	log.Println("CheckOut request received")
 	recID := mux.Vars(r)["record_id"]
 	if recID == "" {
+		log.Println("CheckOut: record_id missing")
 		http.Error(w, "record_id required", http.StatusBadRequest)
 		return
 	}
@@ -81,10 +85,12 @@ func (s *server) checkOut(w http.ResponseWriter, r *http.Request) {
 	var updated AttendanceRecord
 	err := s.collection.FindOneAndUpdate(r.Context(), bson.M{"_id": oid}, update, opts).Decode(&updated)
 	if err != nil {
+		log.Println("CheckOut: record not found", err)
 		http.Error(w, "record not found", http.StatusNotFound)
 		return
 	}
 
+	log.Println("CheckOut: record updated with ID:", updated.ID.Hex())
 	json.NewEncoder(w).Encode(map[string]string{
 		"message":      "Checked out successfully",
 		"id":           updated.ID.Hex(),
@@ -94,6 +100,7 @@ func (s *server) checkOut(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) getAttendance(w http.ResponseWriter, r *http.Request) {
 	userID := mux.Vars(r)["user_id"]
+	log.Println("GetAttendance request for user:", userID)
 	if userID == "" {
 		http.Error(w, "user_id required", http.StatusBadRequest)
 		return
@@ -102,16 +109,20 @@ func (s *server) getAttendance(w http.ResponseWriter, r *http.Request) {
 	var record AttendanceRecord
 	err := s.collection.FindOne(r.Context(), bson.M{"user_id": userID}).Decode(&record)
 	if err != nil {
+		log.Println("GetAttendance: no record found for user:", userID)
 		http.Error(w, "no record found", http.StatusNotFound)
 		return
 	}
 
+	log.Println("GetAttendance: record found for user:", userID)
 	json.NewEncoder(w).Encode(record)
 }
 
 func (s *server) getAllAttendance(w http.ResponseWriter, r *http.Request) {
+	log.Println("GetAllAttendance request received")
 	cursor, err := s.collection.Find(r.Context(), bson.D{})
 	if err != nil {
+		log.Println("GetAllAttendance: Mongo find error", err)
 		http.Error(w, "failed to fetch records", http.StatusInternalServerError)
 		return
 	}
@@ -119,45 +130,16 @@ func (s *server) getAllAttendance(w http.ResponseWriter, r *http.Request) {
 
 	var records []AttendanceRecord
 	if err := cursor.All(r.Context(), &records); err != nil {
+		log.Println("GetAllAttendance: decode error", err)
 		http.Error(w, "failed to decode records", http.StatusInternalServerError)
 		return
 	}
 
+	log.Printf("GetAllAttendance: %d records found\n", len(records))
 	json.NewEncoder(w).Encode(records)
 }
 
 // --------- Main ---------
-
-func main() {
-	mongoURI := os.Getenv("MONGO_URI")
-	if mongoURI == "" {
-		mongoURI = "mongodb://localhost:27017"
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
-	if err != nil {
-		log.Fatal("Mongo connect error:", err)
-	}
-
-	collection := client.Database("attendance_db").Collection("records")
-	s := &server{collection: collection}
-
-	r := mux.NewRouter()
-	r.HandleFunc("/v1/checkin", s.checkIn).Methods("POST")
-	r.HandleFunc("/v1/checkout/{record_id}", s.checkOut).Methods("PUT")
-	r.HandleFunc("/v1/attendance/{user_id}", s.getAttendance).Methods("GET")
-	r.HandleFunc("/v1/attendance", s.getAllAttendance).Methods("GET")
-
-	httpPort := os.Getenv("HTTP_PORT")
-	if httpPort == "" {
-		httpPort = "8080"
-	}
-
-	log.Println("HTTP server running on port", httpPort)
-	log.Fatal(http.ListenAndServe(":"+httpPort, r))
-}
 
 // package main
 
