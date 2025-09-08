@@ -65,31 +65,6 @@ v
 
 ---
 
-## 📂 Project Structure
-
-```
-
-attendance\_service/
-├── proto/
-│   ├── attendance.proto        # gRPC service definition
-│   ├── attendance.pb.go        # Generated Go code (protobuf)
-│   ├── attendance\_grpc.pb.go   # Generated Go code (gRPC)
-│   ├── attendance.pb.gw\.go     # Generated Go code (gRPC-Gateway)
-│   └── googleapis/             # Google API proto files
-├── main.go                     # Service entrypoint
-├── Dockerfile                  # Docker build file
-├── docker-compose.yml          # Optional local testing
-├── k8s/                        # Kubernetes manifests
-│   ├── deployment.yaml
-│   ├── service.yaml
-│   └── mongo-secret.yaml
-├── charts/                     # Helm chart
-└── README.md                   # Documentation
-
-````
-
----
-
 ## 🚀 Setup & Installation
 
 ### 1. Generate gRPC and Gateway Code
