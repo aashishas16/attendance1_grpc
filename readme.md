@@ -1,4 +1,4 @@
-Perfect 👍 I’ll draft a `README.md` for your **Attendance Management Service** project. It will explain:
+
 
 * What the project does
 * How gRPC + gRPC-Gateway + Protobuf fit together
@@ -211,6 +211,3 @@ Built by **Aashish Singune** as part of microservices learning project.
 ```
 
 ---
-
-Would you like me to also add **sample Kubernetes YAML manifests** (`deployment.yaml`, `service.yaml`, `mongo-secret.yaml`) inside this README so that you don’t need to switch files while following steps?
-```
