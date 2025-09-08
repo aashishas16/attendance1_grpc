@@ -2,13 +2,15 @@ syntax = "proto3";
 
 package attendance;
 
+
+
+import "google/api/annotations.proto";
 option go_package = "attendance1/proto;proto";
 
 // --- Request Messages ---
 message CheckInRequest {
   string user_id = 1;
   string username = 2;
-  string name =3;
 }
 
 message CheckOutRequest {
@@ -37,8 +39,27 @@ message GetAllAttendanceResponse {
 
 // --- Service Definition ---
 service AttendanceService {
-  rpc CheckIn(CheckInRequest) returns (AttendanceRecordResponse);
-  rpc CheckOut(CheckOutRequest) returns (AttendanceRecordResponse);
-  rpc GetAttendance(GetAttendanceRequest) returns (AttendanceRecordResponse);
-  rpc GetAllAttendance(GetAllAttendanceRequest) returns (GetAllAttendanceResponse);
+  rpc CheckIn(CheckInRequest) returns (AttendanceRecordResponse) {
+    option (google.api.http) = {
+      post: "/v1/checkin"
+      body: "*"
+    };
+  }
+  rpc CheckOut(CheckOutRequest) returns (AttendanceRecordResponse) {
+    option (google.api.http) = {
+      put: "/v1/checkout/{record_id}"
+      body: "*"
+    };
+    
+  }
+  rpc GetAttendance(GetAttendanceRequest) returns (AttendanceRecordResponse) {
+    option (google.api.http) = {
+      get: "/v1/attendance/{user_id}"
+    };
+  }
+  rpc GetAllAttendance(GetAllAttendanceRequest) returns (GetAllAttendanceResponse) {
+    option (google.api.http) = {
+      get: "/v1/attendance"
+    };
+  }
 }

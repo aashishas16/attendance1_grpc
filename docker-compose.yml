@@ -1,7 +1,9 @@
+version: "3.9"
+
 services:
   mongo:
     image: mongo:6.0
-    container_name: attendance1_mongo_db   # 👈 unique name
+    container_name: attendance1_mongo_db
     restart: always
     ports:
       - "27017:27017"
@@ -16,8 +18,8 @@ services:
     container_name: attendance1_app
     restart: always
     ports:
-      - "50051:50051"
-      - "8080:8080"
+      - "50052:50052"   # gRPC
+      - "8080:8080"     # REST Gateway
     depends_on:
       - mongo
     environment:

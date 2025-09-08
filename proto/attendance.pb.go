@@ -7,6 +7,7 @@
 package proto
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -332,7 +333,7 @@ var File_attendance_proto protoreflect.FileDescriptor
 const file_attendance_proto_rawDesc = "" +
 	"\n" +
 	"\x10attendance.proto\x12\n" +
-	"attendance\"E\n" +
+	"attendance\x1a\x1cgoogle/api/annotations.proto\"E\n" +
 	"\x0eCheckInRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\".\n" +
@@ -349,12 +350,12 @@ const file_attendance_proto_rawDesc = "" +
 	"\rcheckout_time\x18\x05 \x01(\tR\fcheckoutTime\x12%\n" +
 	"\x0estatus_message\x18\x06 \x01(\tR\rstatusMessage\"Z\n" +
 	"\x18GetAllAttendanceResponse\x12>\n" +
-	"\arecords\x18\x01 \x03(\v2$.attendance.AttendanceRecordResponseR\arecords2\xe7\x02\n" +
-	"\x11AttendanceService\x12K\n" +
-	"\aCheckIn\x12\x1a.attendance.CheckInRequest\x1a$.attendance.AttendanceRecordResponse\x12M\n" +
-	"\bCheckOut\x12\x1b.attendance.CheckOutRequest\x1a$.attendance.AttendanceRecordResponse\x12W\n" +
-	"\rGetAttendance\x12 .attendance.GetAttendanceRequest\x1a$.attendance.AttendanceRecordResponse\x12]\n" +
-	"\x10GetAllAttendance\x12#.attendance.GetAllAttendanceRequest\x1a$.attendance.GetAllAttendanceResponseB0Z.github.com/aashishas16/attendance1/proto;protob\x06proto3"
+	"\arecords\x18\x01 \x03(\v2$.attendance.AttendanceRecordResponseR\arecords2\xde\x03\n" +
+	"\x11AttendanceService\x12c\n" +
+	"\aCheckIn\x12\x1a.attendance.CheckInRequest\x1a$.attendance.AttendanceRecordResponse\"\x16\x82\xd3\xe4\x93\x02\x10:\x01*\"\v/v1/checkin\x12r\n" +
+	"\bCheckOut\x12\x1b.attendance.CheckOutRequest\x1a$.attendance.AttendanceRecordResponse\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\x1a\x18/v1/checkout/{record_id}\x12y\n" +
+	"\rGetAttendance\x12 .attendance.GetAttendanceRequest\x1a$.attendance.AttendanceRecordResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/v1/attendance/{user_id}\x12u\n" +
+	"\x10GetAllAttendance\x12#.attendance.GetAllAttendanceRequest\x1a$.attendance.GetAllAttendanceResponse\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/v1/attendanceB\x19Z\x17attendance1/proto;protob\x06proto3"
 
 var (
 	file_attendance_proto_rawDescOnce sync.Once

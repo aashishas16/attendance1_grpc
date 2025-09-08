@@ -3,25 +3,27 @@ package main
 import (
 	"context"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"google.golang.org/grpc"
+
+	pb "attendance1/proto"
 )
 
 func main() {
-	log.Println("Starting Attendance API server...")
+	log.Println("Starting Attendance Service (gRPC + REST)")
 
-	mongoURI := os.Getenv("MONGO_URI")
-	if mongoURI == "" {
-		mongoURI = "mongodb://localhost:27017"
-	}
-
+	// MongoDB
+	mongoURI := getEnv("MONGO_URI", "mongodb://localhost:27017")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
 	if err != nil {
 		log.Fatal("Mongo connect error:", err)
@@ -29,19 +31,41 @@ func main() {
 	log.Println("MongoDB connected successfully")
 
 	collection := client.Database("attendance_db").Collection("records")
-	s := &server{collection: collection}
+	loc, _ := time.LoadLocation("Asia/Kolkata")
 
-	r := mux.NewRouter()
-	r.HandleFunc("/v1/checkin", s.checkIn).Methods("POST")
-	r.HandleFunc("/v1/checkout/{record_id}", s.checkOut).Methods("PUT")
-	r.HandleFunc("/v1/attendance/{user_id}", s.getAttendance).Methods("GET")
-	r.HandleFunc("/v1/attendance", s.getAllAttendance).Methods("GET")
+	// gRPC Server
+	grpcPort := getEnv("GRPC_PORT", "50052")
+	grpcServer := grpc.NewServer()
+	s := &attendanceServer{collection: collection, loc: loc}
+	pb.RegisterAttendanceServiceServer(grpcServer, s)
 
-	httpPort := os.Getenv("HTTP_PORT")
-	if httpPort == "" {
-		httpPort = "8080"
+	lis, err := net.Listen("tcp", ":"+grpcPort)
+	if err != nil {
+		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	log.Println("HTTP server running on port", httpPort)
-	log.Fatal(http.ListenAndServe(":"+httpPort, r))
+	go func() {
+		log.Println("gRPC server running on port", grpcPort)
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("Failed to serve gRPC: %v", err)
+		}
+	}()
+
+	// REST Gateway
+	httpPort := getEnv("HTTP_PORT", "8080")
+	mux := runtime.NewServeMux()
+	opts := []grpc.DialOption{grpc.WithInsecure()}
+	err = pb.RegisterAttendanceServiceHandlerFromEndpoint(context.Background(), mux, "localhost:"+grpcPort, opts)
+	if err != nil {
+		log.Fatalf("Failed to start HTTP gateway: %v", err)
+	}
+	log.Println("REST gateway running on port", httpPort)
+	log.Fatal(http.ListenAndServe(":"+httpPort, mux))
+}
+
+func getEnv(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
 }
